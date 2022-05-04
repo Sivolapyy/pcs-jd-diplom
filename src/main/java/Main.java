@@ -12,24 +12,39 @@ public class Main {
 
     public static void main(String[] args) {
 
-        try (ServerSocket serverSocket = new ServerSocket(8989);
-             Socket clientSocket = serverSocket.accept();
-             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+        while (true) {
 
-            BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
+            try (ServerSocket serverSocket = new ServerSocket(8989);
+                 Socket clientSocket = serverSocket.accept();
+                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
-            final String searchWord = in.readLine();
+                BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
 
-            List<PageEntry> result = engine.search(searchWord);
+                final String searchWord = in.readLine();
 
-            Type listType = new TypeToken<List<PageEntry>>() {}.getType();
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                if (searchWord.equals("stop")) {
+                    clientSocket.close();
+                    out.close();
+                    in.close();
+                    break;
+                }
 
-            out.println(gson.toJson(result, listType));
+                List<PageEntry> result = engine.search(searchWord);
 
-        } catch (IOException exception) {
-            System.out.println("Ошибка - " + exception.getMessage());
+                if (!result.isEmpty()) {
+                    Type listType = new TypeToken<List<PageEntry>>() {}.getType();
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+                    out.println(gson.toJson(result, listType));
+                } else {
+                    out.println("Слово " + searchWord + " в документах не найдено...");
+                }
+
+            } catch (IOException exception) {
+                System.out.println("Ошибка - " + exception.getMessage());
+            }
+
         }
 
     }

@@ -55,8 +55,10 @@ public class BooleanSearchEngine implements SearchEngine {
 
     @Override
     public List<PageEntry> search(String word) {
-        return indexedFiles.get(word.toLowerCase()).stream()
-                .sorted().collect(Collectors.toList());
+        return indexedFiles.containsKey(word.toLowerCase())
+                ? indexedFiles.get(word.toLowerCase()).stream()
+                     .sorted().collect(Collectors.toList())
+                : new ArrayList<>();
     }
 
 }
