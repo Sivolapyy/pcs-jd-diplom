@@ -12,14 +12,15 @@ public class Main {
 
     public static void main(String[] args) {
 
-        while (true) {
+        try (ServerSocket serverSocket = new ServerSocket(8989)) {
 
-            try (ServerSocket serverSocket = new ServerSocket(8989);
-                 Socket clientSocket = serverSocket.accept();
-                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+            BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
 
-                BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
+            while (true) {
+
+                Socket clientSocket = serverSocket.accept();
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
                 final String searchWord = in.readLine();
 
@@ -41,10 +42,14 @@ public class Main {
                     out.println("Слово " + searchWord + " в документах не найдено...");
                 }
 
-            } catch (IOException exception) {
-                System.out.println("Ошибка - " + exception.getMessage());
+                clientSocket.close();
+                out.close();
+                in.close();
+
             }
 
+        } catch (IOException exception) {
+            System.out.println("Ошибка сервера - " + exception.getMessage());
         }
 
     }
